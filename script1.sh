@@ -117,6 +117,9 @@ EOF
         del)
                 validateArgs 1 1 $#
                 evID=$1
+                len=$(cat $DATAFILE |jq '.events | length')
+                cat $DATAFILE |jq --argjson id "$evID" '.events |= map(select(.id != $id))' > $DATAFILE.tmp
+                mv $DATAFILE.tmp $DATAFILE
                 ;;
         move)
                 validateArgs 2 2 $#
@@ -127,6 +130,8 @@ EOF
                         usage
                         exit 2
                 fi
+                cat $DATAFILE |jq --argjson id "$evID" --argjson date "$newDate" '(.events[] | select(.id == $id)).date = $date' > $DATAFILE.tmp
+                mv $DATAFILE.tmp $DATAFILE
                 ;;
         help|--help)
                 usage
