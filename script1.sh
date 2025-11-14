@@ -8,6 +8,9 @@ function usage() {
         cat << EOF
 Invalid command - usage:
         $0 add <date: yyyy-mm-dd> <task description> [<priority>] - adds a new task
+        $0 list [<date: yyyy-mm-dd>] - lists events planned for <date>. If no date is given, lists events for today ($(date))
+        $0 del <event ID> - deletes event with given ID
+        $0 move <event ID> <new date: yyyy-mm-dd> - moves event with given ID to new date
 EOF
 }
 
@@ -68,7 +71,30 @@ Adding new event:
 - Priority: $priority
 EOF
                 ;;
-        --help)
+        list)
+                validateArgs 0 1 $#
+                evDate=$(date -d "$1" +%s 2> /dev/null) # if -d gets empty field, it is considered being todeay by default
+                if [[ $? != 0 ]]; then
+                        echo "Inalid date format!"
+                        usage
+                        exit 2
+                fi
+                ;;
+        del)
+                validateArgs 1 1 $#
+                evID=$1
+                ;;
+        move)
+                validateArgs 2 2 $#
+                evID=$1
+                newDate=$(date -d "$2" +%s 2> /dev/null)
+                if [[ $? != 0 ]]; then
+                        echo "Inalid date format!"
+                        usage
+                        exit 2
+                fi
+                ;;
+        help|--help)
                 usage
                 exit 0
                 ;;
