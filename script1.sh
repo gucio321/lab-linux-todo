@@ -4,6 +4,13 @@
 # Projekt zaliczeniowy na laboratirum z Systemy Operacyjne Linux
 # Projekt przedstawia prosty organizer zadań
 
+# This is .json to make debugging with vim easier (syntax highlight) but can be made `.todo` with no consequences other than losing current state
+DATAFILE="$HOME/.todo.json" # I suppose that the file either does not exist or is valid! Making the file invalid may have unpredictable consequences!
+
+if [[ ! -f $DATAFILE ]]; then
+        echo "{}" > $DATAFILE
+fi
+
 function usage() {
         cat << EOF
 Invalid command - usage:
@@ -23,6 +30,14 @@ function validateArgs() {
                 usage
                 exit 1
         fi
+}
+
+function genNewID() {
+        # // is like "or" operator - if newID does not exist, use 0
+        newID=$(cat $DATAFILE |jq '.newID // 0') 
+        cat $DATAFILE |jq --argjson id "$newID" '.newID = $id+1' > $DATAFILE.tmp
+        mv $DATAFILE.tmp $DATAFILE
+        echo $newID
 }
 
 if [[ $# == 0 ]]; then
@@ -64,12 +79,17 @@ case $cmd in
                         priority="0"
                 fi
 
+                newID=$(genNewID)
+
                 cat << EOF
 Adding new event:
 - When?: $(date -d "@$evDate" +"%Y-%m-%d")
 - What?: $evDescription
 - Priority: $priority
 EOF
+                cat $DATAFILE |jq --argjson id "$newID" --argjson date "$evDate" --arg desc "$evDescription" --argjson prio "$priority" \
+                        '.events += [{"id":$id, "date": $date, "description": $desc, "priority": $prio}]' > $DATAFILE.tmp
+                mv $DATAFILE.tmp $DATAFILE
                 ;;
         list)
                 validateArgs 0 1 $#
