@@ -58,7 +58,7 @@ case $cmd in
                 fi
                 # validate date
                 # %s is a second since the epoch (comfortable for integer operations)
-                today=$(date +%s)
+                today=$(date -d "" +%s)
                 evDescription=$2
                 if [[ $evDate -lt $today ]]; then
                         echo "Date cannot be in the past!"
@@ -99,6 +99,20 @@ EOF
                         usage
                         exit 2
                 fi
+                len=$(cat $DATAFILE |jq '.events | length')
+                echo -e "ID\tDESCRIPTION\tPRIORITY"
+                for i in `seq $len`; do 
+                        data=$(cat $DATAFILE | jq --argjson idx "$i" '.events[$idx-1]')
+                        evEvDate=$(echo $data | jq '.date')
+                        if [[ $evEvDate != $evDate ]]; then
+                                continue
+                        fi
+
+                        evID=$(echo $data | jq '.id')
+                        evDescription=$(echo $data | jq -r '.description')
+                        evPriority=$(echo $data | jq '.priority')
+                        echo -e "$evID\t$evDescription\t$evPriority"
+                done
                 ;;
         del)
                 validateArgs 1 1 $#
