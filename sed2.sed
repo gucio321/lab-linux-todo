@@ -1,12 +1,16 @@
 /\/\*\+/{ # if we find the start of a comment /*
         # define "multilineComment" label
         :multilineComment 
+        s/\/\*\+//g
+        /^$/!{
+                s/\(.*\)/\/\/ \1/g
+        }
         /\*\+\//!{
-                N # add next line and check for comment end again
+                n
                 b multilineComment
         }
-        s/\*\+\///g
-        s/\/\*\+//g
+        s/\(\/\/ \+\)\?\*\+\///g
         p
+        d
 }
 
