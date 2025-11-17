@@ -1,0 +1,16 @@
+should not be visible!
+kod okod kod /**
+lalala
+*/ kod kod kod!
+
+kod kod kod // komentarz
+
+an this is after comment
+
+/*****
+another comment
+***/
+uuuuuu
+
+/*some one line comment */
+also invisible
