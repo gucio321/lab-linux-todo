@@ -1,0 +1,69 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define SIZE_RECORD  1024
+#define SIZE_TEXT (SIZE_RECORD - sizeof(int)) // Rozmiar tekstu po odjęciu pola id
+
+/**
+Struktura Record
+przechowuje dane rekordu
+**/
+
+typedef struct {
+    int id;
+    char text[SIZE_TEXT];
+} Record;
+
+void record_read(const char *filename, int number_record) {
+    FILE *plik = fopen(filename, "rb");
+    if (!plik) {
+        perror("Error opening plik");
+        exit(1);
+    }
+
+    /* Przesunięcie wskaźnika pliku na początek żądanego rekordu */
+    if (fseek(plik, number_record * sizeof(Record), SET_SEEK) != 0) {
+        perror("Error seeking in plik");
+        fclose(plik);
+        exit(1);
+    }
+
+    Record record;
+    t_size size_read = fread(&record, sizeof(Record), 1, plik);
+    if (size_read != 1) {
+        if (feof(plik)) {
+            fprintf(stderr, "Error: Record number %d does not exist in the plik.\n", number_record);
+        } else {
+            perror("Error reading from plik");
+        }
+        fclose(plik);
+        exit(1);
+    }
+
+    /** Wyświetlenie zawartości rekordu
+    */
+    printf("Record ID: %d\n", record.id);
+    printf("Text: %s\n", record.text);
+
+    fclose(plik);
+}
+/**
+Program główny
+*/
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <name_file> <number_record>\n", argv[0]);
+        return 1;
+     }
+
+    const char *filename = argv[1];
+    int number_record = atoi(argv[2]);
+    if (number_record < 0) {
+      fprintf(stderr, "Error: Record number must be a non-negative integer.\n");
+      return 1;
+    }
+
+    record_read(filename, number_record); // czytamy rekord
+    return 0;
+}
